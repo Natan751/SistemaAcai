@@ -1,8 +1,10 @@
 package dcx.ufpb.natan.sistemaAcai;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SistemaAcai implements AcaiInterface {
     private Map<String, AcaiProdutos> mapaProdutos;
@@ -14,22 +16,20 @@ public class SistemaAcai implements AcaiInterface {
     }
 
     @Override
-    public void cadastrarNovoPedido(String nomeCliente, String idCliente, String funcionario, String categoria, String produto, double preco, int quantidade) throws ProdutoJaExisteException {
-
-        // 1. Verifica se o ID já existe ANTES de cadastrar
+    public void cadastrarNovoPedido(String nomeCliente, String idCliente, String funcionario, String categoria, String produto, double preco, int quantidade, String dataPedido) throws ProdutoJaExisteException {
         if (this.mapaProdutos.containsKey(idCliente)) {
             throw new ProdutoJaExisteException("Já existe um pedido cadastrado com o ID: " + idCliente);
         }
 
-        // 2. Se não existir, faz o cadastro normalmente
-        AcaiProdutos cadastrarNovo = new AcaiProdutos(nomeCliente, idCliente, funcionario, categoria, produto, preco, quantidade);
+        // Agora passando a dataPedido na criação do objeto
+        AcaiProdutos cadastrarNovo = new AcaiProdutos(nomeCliente, idCliente, funcionario, categoria, produto, preco, quantidade, dataPedido);
         this.mapaProdutos.put(idCliente, cadastrarNovo);
-        System.out.println("Novo pedido cadastrado com sucesso! ID: " + idCliente);
     }
 
+    @Override
     public void removerProdutoPeloNome(String nomeDoPedido) throws NaoEncontradoProdutoException {
         if (mapaProdutos.isEmpty()) {
-            throw new SemProdutosException("Me desculpe, mas a lista de Produto esta vazia no momento :(");
+            throw new NaoEncontradoProdutoException("A lista de Produtos está vazia no momento.");
         }
 
         String encontrarId = null;
@@ -39,30 +39,24 @@ public class SistemaAcai implements AcaiInterface {
                 encontrarId = r.getIdDoCliente();
                 break;
             }
-
-            if (encontrarId == null) {
-                throw new NaoEncontradoProdutoException("Não foi encontrado o produto pra que seja removido! Nome do Produto: " + nomeDoPedido);
-            }
-
-            this.mapaProdutos.remove(encontrarId);
-            System.out.println("Foi removido com sucesso o produto com nome: " + nomeDoPedido);
         }
+
+        if (encontrarId == null) {
+            throw new NaoEncontradoProdutoException("Não foi encontrado o produto: " + nomeDoPedido);
+        }
+
+        this.mapaProdutos.remove(encontrarId);
     }
 
-    public void listarTodosProdutoLista(){
-        if (mapaProdutos.isEmpty()) {
-            throw new SemProdutosException("Me desculpe, mas a lista de Produto esta vazia no momento :(");
-        }
-
-        for (AcaiProdutos p : this.mapaProdutos.values()) {
-            System.out.println(p.toString());
-        }
+    @Override
+    public Collection<AcaiProdutos> listarTodosProdutos() throws SemProdutosException {
+        if (mapaProdutos.isEmpty()) throw new SemProdutosException("A lista de Produtos está vazia.");
+        return this.mapaProdutos.values();
     }
 
+    @Override
     public AcaiProdutos pegarTodosProdutosCom(String nome) throws SemProdutosException {
-        if (mapaProdutos.isEmpty()) {
-            throw new SemProdutosException("Lista vazia!");
-        }
+        if (mapaProdutos.isEmpty()) throw new SemProdutosException("Lista vazia!");
 
         return mapaProdutos.values().stream()
                 .filter(p -> p.getProdutoEscolhido().equalsIgnoreCase(nome))
@@ -70,30 +64,67 @@ public class SistemaAcai implements AcaiInterface {
                 .orElse(null);
     }
 
-    public void listarProdutosComNomeCliente(String nomeCliente) {
-        if (mapaProdutos.isEmpty()) {
-            throw new SemProdutosException("Me desculpe, mas nao ha nenhum produto na lista.");
-        }
+    @Override
+    public Collection<AcaiProdutos> listarProdutosComNomeCliente(String nomeCliente) throws SemProdutosException {
+        if (mapaProdutos.isEmpty()) throw new SemProdutosException("Não há nenhum produto na lista.");
 
-        // Usando Stream para filtrar e imprimir
-        long contagem = mapaProdutos.values().stream()
+        Collection<AcaiProdutos> produtos = mapaProdutos.values().stream()
                 .filter(a -> a.getNomeDoCliente().equalsIgnoreCase(nomeCliente))
-                .peek(a -> System.out.println(a.toString()))
-                .count();
+                .collect(Collectors.toList());
 
-        if (contagem == 0) {
-            System.out.println("Nenhum cliente foi encontrado com o nome de " + nomeCliente);
-        }
+        if (produtos.isEmpty()) throw new SemProdutosException("Nenhum pedido encontrado para: " + nomeCliente);
+        return produtos;
     }
 
+    // ==========================================================
+    // IMPLEMENTAÇÃO DOS NOVOS MÉTODOS DE DATA E STATUS
+    // ==========================================================
+
+    @Override
+    public Collection<AcaiProdutos> listarPedidosPorData(String dataPedido) throws SemProdutosException {
+        if (mapaProdutos.isEmpty()) throw new SemProdutosException("Lista vazia!");
+
+        // Uso de Stream e Filter para pegar só os da data específica
+        Collection<AcaiProdutos> produtos = mapaProdutos.values().stream()
+                .filter(a -> a.getDataPedido().equals(dataPedido))
+                .collect(Collectors.toList());
+
+        if (produtos.isEmpty()) throw new SemProdutosException("Nenhum pedido encontrado na data: " + dataPedido);
+        return produtos;
+    }
+
+    @Override
+    public Collection<AcaiProdutos> listarPedidosPorStatus(String status) throws SemProdutosException {
+        if (mapaProdutos.isEmpty()) throw new SemProdutosException("Lista vazia!");
+
+        // Uso de Stream e Filter para pegar por status (ignora se o usuario digitou maiusculo ou minusculo)
+        Collection<AcaiProdutos> produtos = mapaProdutos.values().stream()
+                .filter(a -> a.getStatus().equalsIgnoreCase(status))
+                .collect(Collectors.toList());
+
+        if (produtos.isEmpty()) throw new SemProdutosException("Nenhum pedido com o status: " + status);
+        return produtos;
+    }
+
+    @Override
+    public void finalizarPedido(String idCliente) throws NaoEncontradoProdutoException {
+        if (!mapaProdutos.containsKey(idCliente)) {
+            throw new NaoEncontradoProdutoException("Pedido com ID " + idCliente + " não encontrado.");
+        }
+        AcaiProdutos produto = mapaProdutos.get(idCliente);
+        produto.setStatus("Finalizado"); // Muda o status na hora!
+    }
+
+    // ==========================================================
+
+    @Override
     public void salvarDados() throws IOException {
         this.gravador.salvarProdutos(this.mapaProdutos);
-        System.out.println("Todas as informações foram salvas com sucesso! :)");
     }
 
+    @Override
     public void recuperarDados() throws IOException {
         this.mapaProdutos = this.gravador.recuperarProdutos();
-        System.out.println("Todas os dados foram recuperados com sucesso!");
     }
 
     @Override
@@ -101,7 +132,6 @@ public class SistemaAcai implements AcaiInterface {
         return mapaProdutos.size();
     }
 
-    // 3º Uso de Stream (AnyMatch)
     @Override
     public boolean existePedidoDoCliente(String nomeCliente) {
         return mapaProdutos.values().stream()
@@ -110,11 +140,7 @@ public class SistemaAcai implements AcaiInterface {
 
     @Override
     public void atualizarPrecoDoPedido(String idCliente, double novoPreco) throws NaoEncontradoProdutoException {
-        if (!mapaProdutos.containsKey(idCliente)) {
-            throw new NaoEncontradoProdutoException("Pedido com ID " + idCliente + " não encontrado.");
-        }
-        AcaiProdutos produto = mapaProdutos.get(idCliente);
-        produto.setPrecoDoProduto(novoPreco);
+        if (!mapaProdutos.containsKey(idCliente)) throw new NaoEncontradoProdutoException("Pedido não encontrado.");
+        mapaProdutos.get(idCliente).setPrecoDoProduto(novoPreco);
     }
-
 }
