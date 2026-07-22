@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.Map;
 
 public class SistemaAcaiGUI extends JFrame {
     private SistemaAcai sistema;
@@ -12,7 +13,7 @@ public class SistemaAcaiGUI extends JFrame {
     public SistemaAcaiGUI() {
         sistema = new SistemaAcai();
         setTitle("Sistema de Açaí - Gerenciamento Completo");
-        setSize(550, 400);
+        setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -49,6 +50,63 @@ public class SistemaAcaiGUI extends JFrame {
         menuArquivo.addSeparator();
         menuArquivo.add(itemSair);
 
+        // ================= MENU CARDÁPIO =================
+        JMenu menuCardapio = new JMenu("Cardápio");
+        JMenuItem itemVerCardapio = new JMenuItem("Ver Cardápio");
+        JMenuItem itemAddCardapio = new JMenuItem("Adicionar Item ao Cardápio");
+        JMenuItem itemRemoverCardapio = new JMenuItem("Remover Item do Cardápio");
+
+        itemVerCardapio.addActionListener(e -> {
+            try {
+                Map<String, Double> itens = sistema.obterCardapio();
+                StringBuilder sb = new StringBuilder("=== NOSSO CARDÁPIO ===\n\n");
+
+                for (Map.Entry<String, Double> entry : itens.entrySet()) {
+                    sb.append(String.format(">> %s ......... R$ %.2f\n", entry.getKey(), entry.getValue()));
+                }
+
+                JOptionPane.showMessageDialog(this, sb.toString(), "Cardápio Atual", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SemProdutosException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        itemAddCardapio.addActionListener(e -> {
+            try {
+                String nome = JOptionPane.showInputDialog(this, "Digite o nome do novo Produto:");
+                if (nome == null || nome.trim().isEmpty()) return;
+
+                String precoStr = JOptionPane.showInputDialog(this, "Digite o preço (ex: 15.50):");
+                if (precoStr == null) return;
+
+                double preco = Double.parseDouble(precoStr.replace(",", "."));
+
+                sistema.adicionarItemCardapio(nome, preco);
+                JOptionPane.showMessageDialog(this, "Item adicionado ao cardápio com sucesso!");
+
+            } catch (ProdutoJaExisteException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.WARNING_MESSAGE);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Valor inválido! Digite apenas números.", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        itemRemoverCardapio.addActionListener(e -> {
+            try {
+                String nome = JOptionPane.showInputDialog(this, "Digite o nome exato do item a ser removido:");
+                if (nome == null || nome.trim().isEmpty()) return;
+
+                sistema.removerItemCardapio(nome);
+                JOptionPane.showMessageDialog(this, "Item removido do cardápio!");
+            } catch (NaoEncontradoProdutoException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        menuCardapio.add(itemVerCardapio);
+        menuCardapio.add(itemAddCardapio);
+        menuCardapio.add(itemRemoverCardapio);
+
         // ================= MENU OPERAÇÕES =================
         JMenu menuOperacoes = new JMenu("Operações");
         JMenuItem itemCadastrar = new JMenuItem("Cadastrar Novo Pedido");
@@ -67,7 +125,6 @@ public class SistemaAcaiGUI extends JFrame {
                 String precoStr = JOptionPane.showInputDialog(this, "Preço Unitário (ex: 15.50):");
                 String qtdStr = JOptionPane.showInputDialog(this, "Quantidade:");
 
-                // Sugere a data de hoje preenchida
                 String dataHoje = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 String data = (String) JOptionPane.showInputDialog(this, "Data do Pedido:", "Data", JOptionPane.PLAIN_MESSAGE, null, null, dataHoje);
 
@@ -97,7 +154,6 @@ public class SistemaAcaiGUI extends JFrame {
         });
 
         itemAtualizarPreco.addActionListener(e -> {
-            // ... (mesmo código de antes)
             try {
                 String id = JOptionPane.showInputDialog(this, "Digite o ID do pedido que deseja alterar o preço:");
                 if (id == null) return;
@@ -171,13 +227,15 @@ public class SistemaAcaiGUI extends JFrame {
         menuConsultas.add(itemBuscarData);
         menuConsultas.add(itemBuscarStatus);
 
+        // Adicionando tudo à barra principal
         menuBar.add(menuArquivo);
+        menuBar.add(menuCardapio);
         menuBar.add(menuOperacoes);
         menuBar.add(menuConsultas);
         setJMenuBar(menuBar);
     }
 
-    // Método auxiliar para não repetir código na hora de mostrar o JTextArea
+    // Método auxiliar para não repetir código
     private void exibirListaNaTela(String titulo, Collection<AcaiProdutos> lista) {
         StringBuilder txt = new StringBuilder("=== " + titulo + " ===\n\n");
         for (AcaiProdutos p : lista) {

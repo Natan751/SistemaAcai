@@ -11,10 +11,8 @@ public class AcaiProdutos implements Serializable {
     private String produtoEscolhido;
     private double precoDoProduto;
     private int quantidadeProduto;
-
-    // --- NOVOS ATRIBUTOS ---
     private String dataPedido;
-    private String status; // Vai guardar "Pendente" ou "Finalizado"
+    private String status;
 
     public AcaiProdutos(String nomeDoCliente, String idDoCliente, String funcionario, String categoria, String produtoEscolhido, double precoDoProduto, int quantidadeProduto, String dataPedido) {
         this.nomeDoCliente = nomeDoCliente;
@@ -25,7 +23,7 @@ public class AcaiProdutos implements Serializable {
         this.precoDoProduto = Math.max(precoDoProduto, 0.0);
         this.quantidadeProduto = Math.max(quantidadeProduto, 1);
 
-        // Inicializando os novos atributos
+
         this.dataPedido = dataPedido;
         this.status = "Pendente"; // Por padrão, todo pedido novo começa como pendente
     }
@@ -41,7 +39,6 @@ public class AcaiProdutos implements Serializable {
                 dataPedido, status.toUpperCase(), produtoEscolhido, categoria, nomeDoCliente, idDoCliente, quantidadeProduto, (precoDoProduto * quantidadeProduto));
     }
 
-    // --- GETTERS E SETTERS ---
 
     public String getNomeDoCliente() { return this.nomeDoCliente; }
     public void setNomeDoCliente(String novoNome) { this.nomeDoCliente = novoNome; }
@@ -68,14 +65,14 @@ public class AcaiProdutos implements Serializable {
         if (novaQuantidadeVal > 0) this.quantidadeProduto = novaQuantidadeVal;
     }
 
-    // Novos Getters e Setters
+
     public String getDataPedido() { return dataPedido; }
     public void setDataPedido(String dataPedido) { this.dataPedido = dataPedido; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    // --- EQUALS E HASHCODE ---
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

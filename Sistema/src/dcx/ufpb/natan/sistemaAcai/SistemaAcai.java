@@ -9,10 +9,36 @@ import java.util.stream.Collectors;
 public class SistemaAcai implements AcaiInterface {
     private Map<String, AcaiProdutos> mapaProdutos;
     private AcaiGravador gravador;
+    private Map<String, Double> cardapio;
 
     public SistemaAcai() {
         this.mapaProdutos = new HashMap<>();
         this.gravador = new AcaiGravador();
+        this.cardapio = new HashMap<>();
+    }
+
+    @Override
+    public void adicionarItemCardapio(String nomeProduto, double preco) throws ProdutoJaExisteException {
+        if (cardapio.containsKey(nomeProduto)) {
+            throw new ProdutoJaExisteException("O item '" + nomeProduto + "' já existe no cardápio.");
+        }
+        cardapio.put(nomeProduto, preco);
+    }
+
+    @Override
+    public void removerItemCardapio(String nomeProduto) throws NaoEncontradoProdutoException {
+        if (!cardapio.containsKey(nomeProduto)) {
+            throw new NaoEncontradoProdutoException("O item '" + nomeProduto + "' não foi encontrado no cardápio.");
+        }
+        cardapio.remove(nomeProduto);
+    }
+
+    @Override
+    public Map<String, Double> obterCardapio() throws SemProdutosException {
+        if (cardapio.isEmpty()) {
+            throw new SemProdutosException("O cardápio está vazio no momento.");
+        }
+        return cardapio;
     }
 
     @Override
@@ -21,7 +47,6 @@ public class SistemaAcai implements AcaiInterface {
             throw new ProdutoJaExisteException("Já existe um pedido cadastrado com o ID: " + idCliente);
         }
 
-        // Agora passando a dataPedido na criação do objeto
         AcaiProdutos cadastrarNovo = new AcaiProdutos(nomeCliente, idCliente, funcionario, categoria, produto, preco, quantidade, dataPedido);
         this.mapaProdutos.put(idCliente, cadastrarNovo);
     }
@@ -76,15 +101,10 @@ public class SistemaAcai implements AcaiInterface {
         return produtos;
     }
 
-    // ==========================================================
-    // IMPLEMENTAÇÃO DOS NOVOS MÉTODOS DE DATA E STATUS
-    // ==========================================================
-
     @Override
     public Collection<AcaiProdutos> listarPedidosPorData(String dataPedido) throws SemProdutosException {
         if (mapaProdutos.isEmpty()) throw new SemProdutosException("Lista vazia!");
 
-        // Uso de Stream e Filter para pegar só os da data específica
         Collection<AcaiProdutos> produtos = mapaProdutos.values().stream()
                 .filter(a -> a.getDataPedido().equals(dataPedido))
                 .collect(Collectors.toList());
@@ -97,7 +117,6 @@ public class SistemaAcai implements AcaiInterface {
     public Collection<AcaiProdutos> listarPedidosPorStatus(String status) throws SemProdutosException {
         if (mapaProdutos.isEmpty()) throw new SemProdutosException("Lista vazia!");
 
-        // Uso de Stream e Filter para pegar por status (ignora se o usuario digitou maiusculo ou minusculo)
         Collection<AcaiProdutos> produtos = mapaProdutos.values().stream()
                 .filter(a -> a.getStatus().equalsIgnoreCase(status))
                 .collect(Collectors.toList());
@@ -114,8 +133,6 @@ public class SistemaAcai implements AcaiInterface {
         AcaiProdutos produto = mapaProdutos.get(idCliente);
         produto.setStatus("Finalizado"); // Muda o status na hora!
     }
-
-    // ==========================================================
 
     @Override
     public void salvarDados() throws IOException {
