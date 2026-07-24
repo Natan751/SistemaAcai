@@ -22,15 +22,12 @@ public class AcaiProdutos implements Serializable {
         this.produtoEscolhido = produtoEscolhido;
         this.precoDoProduto = Math.max(precoDoProduto, 0.0);
         this.quantidadeProduto = Math.max(quantidadeProduto, 1);
-
-
         this.dataPedido = dataPedido;
-        this.status = "Pendente"; // Por padrão, todo pedido novo começa como pendente
+        this.status = "Pendente"; // Status inicial padrão
     }
 
-    public AcaiProdutos(){
+    public AcaiProdutos() {
         this("", "", "", "", "", 0.0, 1, "");
-        this.status = "Pendente";
     }
 
     @Override
@@ -39,32 +36,31 @@ public class AcaiProdutos implements Serializable {
                 dataPedido, status.toUpperCase(), produtoEscolhido, categoria, nomeDoCliente, idDoCliente, quantidadeProduto, (precoDoProduto * quantidadeProduto));
     }
 
+    // Getters e Setters
+    public String getNomeDoCliente() { return nomeDoCliente; }
+    public void setNomeDoCliente(String nomeDoCliente) { this.nomeDoCliente = nomeDoCliente; }
 
-    public String getNomeDoCliente() { return this.nomeDoCliente; }
-    public void setNomeDoCliente(String novoNome) { this.nomeDoCliente = novoNome; }
+    public String getIdDoCliente() { return idDoCliente; }
+    public void setIdDoCliente(String idDoCliente) { this.idDoCliente = idDoCliente; }
 
-    public String getIdDoCliente() { return this.idDoCliente; }
-    public void setIdDoCliente(String novoID) { this.idDoCliente = novoID; }
+    public String getFuncionario() { return funcionario; }
+    public void setFuncionario(String funcionario) { this.funcionario = funcionario; }
 
-    public String getFuncionario() { return this.funcionario; }
-    public void setFuncionario(String novoFuncionario) { this.funcionario = novoFuncionario; }
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String categoria) { this.categoria = categoria; }
 
-    public String getCategoria() { return this.categoria; }
-    public void setCategoria(String novaCategoria) { this.categoria = novaCategoria; }
+    public String getProdutoEscolhido() { return produtoEscolhido; }
+    public void setProdutoEscolhido(String produtoEscolhido) { this.produtoEscolhido = produtoEscolhido; }
 
-    public String getProdutoEscolhido() { return this.produtoEscolhido; }
-    public void setProdutoEscolhido(String novoProduto) { this.produtoEscolhido = novoProduto; }
-
-    public double getPrecoDoProduto() { return this.precoDoProduto; }
-    public void setPrecoDoProduto(double novoPreco) {
-        if (novoPreco >= 0) this.precoDoProduto = novoPreco;
+    public double getPrecoDoProduto() { return precoDoProduto; }
+    public void setPrecoDoProduto(double precoDoProduto) {
+        if (precoDoProduto >= 0) this.precoDoProduto = precoDoProduto;
     }
 
-    public int getQuantidadeProduto() { return this.quantidadeProduto; }
-    public void setQuantidadeProduto(int novaQuantidadeVal) {
-        if (novaQuantidadeVal > 0) this.quantidadeProduto = novaQuantidadeVal;
+    public int getQuantidadeProduto() { return quantidadeProduto; }
+    public void setQuantidadeProduto(int quantidadeProduto) {
+        if (quantidadeProduto > 0) this.quantidadeProduto = quantidadeProduto;
     }
-
 
     public String getDataPedido() { return dataPedido; }
     public void setDataPedido(String dataPedido) { this.dataPedido = dataPedido; }
@@ -72,12 +68,12 @@ public class AcaiProdutos implements Serializable {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AcaiProdutos that = (AcaiProdutos) o;
-        return Double.compare(precoDoProduto, that.precoDoProduto) == 0 && quantidadeProduto == that.quantidadeProduto && Objects.equals(nomeDoCliente, that.nomeDoCliente) && Objects.equals(idDoCliente, that.idDoCliente) && Objects.equals(funcionario, that.funcionario) && Objects.equals(categoria, that.categoria) && Objects.equals(produtoEscolhido, that.produtoEscolhido) && Objects.equals(dataPedido, that.dataPedido) && Objects.equals(status, that.status);
+        return Double.compare(that.precoDoProduto, precoDoProduto) == 0 && quantidadeProduto == that.quantidadeProduto && Objects.equals(nomeDoCliente, that.nomeDoCliente) && Objects.equals(idDoCliente, that.idDoCliente) && Objects.equals(funcionario, that.funcionario) && Objects.equals(categoria, that.categoria) && Objects.equals(produtoEscolhido, that.produtoEscolhido) && Objects.equals(dataPedido, that.dataPedido) && Objects.equals(status, that.status);
     }
 
     @Override
